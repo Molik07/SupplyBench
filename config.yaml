@@ -9,8 +9,9 @@ evaluation:
   metric: rmse
 
 groq:
-  model: llama3-8b-8192
-  max_tokens: 500
+  model: llama-3.3-70b-versatile
+  max_tokens: 1000
+  temperature: 0.3
 
 report:
   output_path: reports/

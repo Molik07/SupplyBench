@@ -18,12 +18,17 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import json
 import time
+import os
 from pathlib import Path
 from collections import OrderedDict
 
 import click
 import yaml
 import numpy as np
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Ensure project root is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -313,13 +318,42 @@ def run(item: str | None) -> None:
             json.dump(results_payload, f, indent=2, ensure_ascii=False)
 
         # -------------------------------------------------------------- #
-        # Step 10 — Completion message                                     #
+        # Step 10 — AI Explanation via Groq                                #
+        # -------------------------------------------------------------- #
+        print(f"\n  Results saved to: {results_file}")
+
+        print("\n  Generating AI explanation via Groq...")
+        from explainer import GroqExplainer
+
+        groq_explainer = GroqExplainer()
+        explanation = groq_explainer.explain_from_file(str(results_file))
+
+        print(f"\n{THIN_SEP}")
+        print("  AI Explanation")
+        print(THIN_SEP)
+        print(explanation)
+        print(THIN_SEP)
+
+        # Save the explanation back into results.json
+        results_payload["ai_explanation"] = explanation
+        with open(results_file, "w", encoding="utf-8") as f:
+            json.dump(results_payload, f, indent=2, ensure_ascii=False)
+
+        # -------------------------------------------------------------- #
+        # Step 11 — Completion message                                     #
         # -------------------------------------------------------------- #
         if skipped_items:
             print(f"\n  Note: {len(skipped_items)} item(s) were skipped due to errors.")
 
-        print(f"\n  Results saved to: {results_file}")
-        print("  HTML report can be generated in Phase 5.")
+        # -------------------------------------------------------------- #
+        # Step 12 — Generate HTML report                                   #
+        # -------------------------------------------------------------- #
+        print("\n  Generating HTML report...")
+        from report import HTMLReportGenerator
+
+        report_gen = HTMLReportGenerator()
+        report_gen.generate_from_file(str(results_file), str(output_path / "report.html"))
+        print("  Open reports/report.html in your browser to view the full report.")
 
         print(f"\n{SEPARATOR}")
         print("  SupplyBench run complete.")

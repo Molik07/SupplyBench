@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupplyBench — Benchmark Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & Base ──────────────────────────────────────────── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f1f5f9;
+            color: #334155;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Section 1: Header ─────────────────────────────────────── */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            color: #ffffff;
+            padding: 48px 0 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 18px 24px;
+            min-width: 170px;
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* ── Main content area ─────────────────────────────────────── */
+        .main {
+            background: #ffffff;
+            border-radius: 16px;
+            margin: -20px auto 40px;
+            padding: 40px 40px 48px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* ── Section 2: Winner Banner ──────────────────────────────── */
+        .winner-banner {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .winner-banner .trophy {
+            font-size: 2.4rem;
+            line-height: 1;
+        }
+
+        .winner-banner .winner-text {
+            flex: 1;
+        }
+
+        .winner-banner .winner-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #059669;
+            margin-bottom: 2px;
+        }
+
+        .winner-banner .winner-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #065f46;
+        }
+
+        .winner-banner .winner-score {
+            font-size: 0.95rem;
+            color: #047857;
+            font-weight: 500;
+        }
+
+        /* ── Section 3: Metrics Table ──────────────────────────────── */
+        .metrics-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .metrics-table thead th {
+            background: #f8fafc;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .metrics-table thead th.num {
+            text-align: right;
+        }
+
+        .metrics-table tbody td {
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .metrics-table tbody td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+        }
+
+        .metrics-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .metrics-table tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .metrics-table tbody tr.winner-row {
+            background: #ecfdf5 !important;
+        }
+
+        .metrics-table tbody tr.winner-row td:first-child {
+            font-weight: 700;
+            color: #065f46;
+        }
+
+        .model-rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 10px;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .winner-row .model-rank {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        /* ── Section 4: Chart ──────────────────────────────────────── */
+        .chart-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        /* ── Section 5: Model Ranking ──────────────────────────────── */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            transition: transform 0.15s ease;
+        }
+
+        .ranking-item:hover {
+            transform: translateX(4px);
+        }
+
+        .ranking-item.first-place {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-color: #a7f3d0;
+            padding: 18px 20px;
+        }
+
+        .ranking-position {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #94a3b8;
+            min-width: 50px;
+        }
+
+        .first-place .ranking-position {
+            color: #059669;
+            font-size: 1.3rem;
+        }
+
+        .ranking-model-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .first-place .ranking-model-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #065f46;
+        }
+
+        .ranking-score {
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .first-place .ranking-score {
+            font-weight: 700;
+            color: #047857;
+        }
+
+        /* ── Section 6: AI Explanation ──────────────────────────────── */
+        .ai-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 12px;
+            padding: 28px 28px 24px;
+        }
+
+        .ai-box .ai-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #2563eb;
+            margin-bottom: 14px;
+        }
+
+        .ai-box .ai-label .ai-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .ai-box .ai-content {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: #1e3a5f;
+        }
+
+        .ai-box .ai-footer {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* ── Section 7: Footer ─────────────────────────────────────── */
+        .footer {
+            text-align: center;
+            padding: 24px 0 40px;
+            font-size: 0.82rem;
+            color: #94a3b8;
+        }
+
+        .footer span {
+            color: #64748b;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════ Section 1: Header ═══════════════ -->
+    <div class="header">
+        <div class="container">
+            <h1>SupplyBench</h1>
+            <p class="subtitle">Supply Chain Forecasting Benchmark Report</p>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="label">Dataset</div>
+                    <div class="value">{{ dataset.upper() }} Competition</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Store</div>
+                    <div class="value">{{ store }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Products Evaluated</div>
+                    <div class="value">{{ items_evaluated }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Test Horizon</div>
+                    <div class="value">{{ test_days }} days</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main">
+
+            <!-- ═══════════════ Section 2: Winner Banner ═══════════════ -->
+            <div class="winner-banner">
+                <div class="trophy">🏆</div>
+                <div class="winner-text">
+                    <div class="winner-label">Top Performing Model</div>
+                    <div class="winner-name">{{ winner_name }} ranked #1</div>
+                    <div class="winner-score">Avg RMSE: {% if winner_rmse is not none %}{{ "%.4f"|format(winner_rmse) }}{% else %}N/A{% endif %}</div>
+                </div>
+            </div>
+
+            <!-- ═══════════════ Section 3: Metrics Table ═══════════════ -->
+            <div class="section">
+                <h2 class="section-title">Metrics Comparison</h2>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th class="num">Avg RMSE</th>
+                            <th class="num">Avg MAE</th>
+                            <th class="num">Avg MAPE (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model in ranked_models %}
+                        <tr class="{% if loop.index == 1 %}winner-row{% endif %}">
+                            <td>
+                                <span class="model-rank">{{ loop.index }}</span>
+                                {{ model.name }}
+                            </td>
+                            <td class="num">{% if model.avg_rmse is not none %}{{ "%.4f"|format(model.avg_rmse) }}{% else %}N/A{% endif %}</td>
+                            <td class="num">{% if model.avg_mae is not none %}{{ "%.4f"|format(model.avg_mae) }}{% else %}N/A{% endif %}</td>
+                            <td class="num">{% if model.avg_mape is not none %}{{ "%.2f"|format(model.avg_mape) }}{% else %}N/A{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ═══════════════ Section 4: Bar Chart ═══════════════ -->
+            <div class="section">
+                <h2 class="section-title">Performance Chart</h2>
+                <div class="chart-container">
+                    {{ plotly_chart_html | safe }}
+                </div>
+            </div>
+
+            <!-- ═══════════════ Section 5: Model Ranking ═══════════════ -->
+            <div class="section">
+                <h2 class="section-title">Model Ranking</h2>
+                <div class="ranking-list">
+                    {% set ordinals = {1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', 6: '6th'} %}
+                    {% for model in ranked_models %}
+                    <div class="ranking-item {% if loop.index == 1 %}first-place{% endif %}">
+                        <div class="ranking-position">{{ ordinals.get(loop.index, loop.index ~ 'th') }}</div>
+                        <div class="ranking-model-name">{{ model.name }}</div>
+                        <div class="ranking-score">Avg RMSE: {% if model.avg_rmse is not none %}{{ "%.4f"|format(model.avg_rmse) }}{% else %}N/A{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ═══════════════ Section 6: AI Explanation ═══════════════ -->
+            <div class="section">
+                <h2 class="section-title">AI-Generated Insight</h2>
+                <div class="ai-box">
+                    <div class="ai-label">
+                        <span class="ai-dot"></span>
+                        AI Generated Insight — powered by Groq &amp; Llama
+                    </div>
+                    <div class="ai-content">{{ ai_explanation }}</div>
+                    <div class="ai-footer">
+                        This explanation was generated automatically by the Groq API using the Llama model,
+                        based on the benchmark results above.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════ Section 7: Footer ═══════════════ -->
+    <div class="footer">
+        <p>Generated by <span>SupplyBench</span> on {{ generated_at }}</p>
+    </div>
+
+</body>
+</html>
