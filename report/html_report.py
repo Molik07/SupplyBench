@@ -115,39 +115,44 @@ class HTMLReportGenerator:
         names = [m["name"] for m in ranked_models]
         rmse_values = [m["avg_rmse"] or 0 for m in ranked_models]
 
-        # Color the winner green, others a neutral blue
         colors = [
-            "#10b981" if name == winner_name else "#6366f1"
+            "#c4a882" if name == winner_name else "#3a3530"
             for name in names
         ]
 
-        fig = go.Figure(
-            data=[
-                go.Bar(
-                    x=names,
-                    y=rmse_values,
-                    marker_color=colors,
-                    text=[f"{v:.4f}" for v in rmse_values],
-                    textposition="outside",
-                    hovertemplate="%{x}<br>Avg RMSE: %{y:.4f}<extra></extra>",
-                )
-            ]
-        )
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=names,
+            y=rmse_values,
+            marker_color=colors,
+            marker_line_width=0,
+            hovertemplate="%{x}<br>Avg RMSE: %{y:.4f}<extra></extra>",
+        ))
 
         fig.update_layout(
-            title={
-                "text": "Model Performance Comparison — Average RMSE",
-                "x": 0.5,
-                "xanchor": "center",
-                "font": {"size": 18, "color": "#1e293b"},
-            },
-            xaxis_title="Model",
-            yaxis_title="Average RMSE",
-            plot_bgcolor="#f8fafc",
-            paper_bgcolor="#ffffff",
-            font={"family": "Inter, system-ui, sans-serif", "color": "#334155"},
-            margin={"t": 60, "b": 60, "l": 60, "r": 30},
-            yaxis={"gridcolor": "#e2e8f0"},
+            paper_bgcolor="#1a1a1a",
+            plot_bgcolor="#1a1a1a",
+            font=dict(family="Inter, sans-serif", color="#8a8680", size=11),
+            title=dict(
+                text="AVG RMSE BY MODEL",
+                font=dict(size=11, color="#8a8680"),
+                x=0,
+            ),
+            xaxis=dict(
+                showgrid=False,
+                zeroline=False,
+                tickfont=dict(color="#8a8680", size=11),
+                linecolor="#2a2a2a",
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#2a2a2a",
+                zeroline=False,
+                tickfont=dict(color="#8a8680", size=11),
+                linecolor="#2a2a2a",
+            ),
+            margin=dict(l=0, r=0, t=40, b=0),
+            height=280,
         )
 
         return pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
