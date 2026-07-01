@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Ensure project root is importable
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Force UTF-8 stdout so formatting chars work on Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -23,9 +23,9 @@ import json
 SEPARATOR = "=" * 65
 THIN_SEP  = "─" * 65
 
-RESULTS_PATH    = Path(__file__).resolve().parent / "reports" / "results.json"
-CV_RESULTS_PATH = Path(__file__).resolve().parent / "reports" / "cv_results.json"
-OUTPUT_PATH     = Path(__file__).resolve().parent / "reports" / "report.html"
+RESULTS_PATH    = Path(__file__).resolve().parent.parent / "reports" / "results.json"
+CV_RESULTS_PATH = Path(__file__).resolve().parent.parent / "reports" / "cv_results.json"
+OUTPUT_PATH     = Path(__file__).resolve().parent.parent / "reports" / "report.html"
 
 
 def main():

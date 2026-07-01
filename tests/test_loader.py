@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Ensure the project root is on the Python path so `data.loader` resolves
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from data.loader import load_m5_data
 

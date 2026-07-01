@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 # Ensure project root is on the path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from data.loader import load_m5_data
 from baselines import (

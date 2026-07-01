@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Ensure project root is importable
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Force UTF-8 stdout so formatting chars work on Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -22,12 +22,12 @@ import json
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(Path(__file__).resolve().parent / ".env")
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 SEPARATOR = "=" * 65
 THIN_SEP  = "─" * 65
 
-RESULTS_PATH = Path(__file__).resolve().parent / "reports" / "results.json"
+RESULTS_PATH = Path(__file__).resolve().parent.parent / "reports" / "results.json"
 
 
 def main():
