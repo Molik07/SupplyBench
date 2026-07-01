@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ./run_brew.sh
+expect {
+    "Password:" {
+        send "shivansh\r"
+        exp_continue
+    }
+    eof
+}

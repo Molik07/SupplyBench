@@ -39,6 +39,7 @@ from baselines import (
     MovingAverageForecaster,
     SeasonalNaiveForecaster,
     ARIMAForecaster,
+    ProphetForecaster,
 )
 from evaluator import MetricsEvaluator
 
@@ -60,12 +61,13 @@ def _load_config() -> dict:
 
 
 def _build_models() -> list:
-    """Instantiate all four baseline models."""
+    """Instantiate all five baseline models."""
     return [
         NaiveForecaster(),
         MovingAverageForecaster(),
         SeasonalNaiveForecaster(),
         ARIMAForecaster(),
+        ProphetForecaster(),
     ]
 
 
@@ -86,7 +88,13 @@ def cli():
     type=str,
     help="Benchmark a single item_id instead of all items.",
 )
-def run(item: str | None) -> None:
+@click.option(
+    "--cv",
+    is_flag=True,
+    default=False,
+    help="Also run Rolling Origin Cross Validation after the benchmark.",
+)
+def run(item: str | None, cv: bool) -> None:
     """Run the full benchmark pipeline end-to-end."""
 
     try:
@@ -194,9 +202,9 @@ def run(item: str | None) -> None:
                         model.fit(train_series)
                         preds = model.predict(test_days)
                         predictions[model.name] = preds
-                    except Exception:
+                    except Exception as e:
                         # Individual model failure — skip this model for this item
-                        pass
+                        print(f"\n  [Warning] Model {model.name} failed: {e}")
 
                 if not predictions:
                     elapsed = time.perf_counter() - t0
@@ -284,7 +292,7 @@ def run(item: str | None) -> None:
         print("  Model Ranking (by Avg RMSE, lower is better)")
         print(THIN_SEP)
 
-        ordinals = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th"}
+        ordinals = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th"}
         for rank, (name, agg) in enumerate(ranked_aggregate.items(), start=1):
             label = ordinals.get(rank, f"{rank}th")
             rmse_str = f"{agg['avg_rmse']:.4f}" if agg["avg_rmse"] is not None else "N/A"
@@ -346,13 +354,76 @@ def run(item: str | None) -> None:
             print(f"\n  Note: {len(skipped_items)} item(s) were skipped due to errors.")
 
         # -------------------------------------------------------------- #
-        # Step 12 — Generate HTML report                                   #
+        # Step 12 — Rolling Origin Cross Validation (optional)             #
+        # -------------------------------------------------------------- #
+        if cv:
+            from evaluator import RollingOriginCV
+
+            cv_n_folds = 5
+            cv_test_size = test_days
+
+            print(f"\n{SEPARATOR}")
+            print(f"  Rolling Origin Cross Validation "
+                  f"({cv_n_folds} folds × {cv_test_size} days)")
+            print(SEPARATOR)
+
+            cv_engine = RollingOriginCV(
+                n_folds=cv_n_folds,
+                test_size=cv_test_size,
+            )
+
+            cv_models = _build_models()
+            cv_results = cv_engine.evaluate_all_items(
+                df, cv_models, show_progress=True
+            )
+
+            # Print CV results table
+            print(f"\n{THIN_SEP}")
+            print("  Cross Validation Results (mean ± std across all folds & items)")
+            print(THIN_SEP)
+
+            col_w = 14
+            cv_header = (f"  {'Model':<20}"
+                         f"{'Mean RMSE':>{col_w}}"
+                         f"{'Std RMSE':>{col_w}}"
+                         f"{'Mean MAPE':>{col_w}}"
+                         f"{'Std MAPE':>{col_w}}")
+            print(f"\n{cv_header}")
+            print("  " + "─" * (20 + col_w * 4))
+
+            # Sort by mean_rmse
+            cv_ranked = sorted(
+                cv_results["models"].items(),
+                key=lambda kv: kv[1]["mean_rmse"] or float("inf"),
+            )
+
+            for name, m in cv_ranked:
+                rmse_s = f"{m['mean_rmse']:.4f}" if m["mean_rmse"] is not None else "N/A"
+                rmse_std = f"±{m['std_rmse']:.4f}" if m["std_rmse"] is not None else "N/A"
+                mape_s = f"{m['mean_mape']:.2f}%" if m["mean_mape"] is not None else "N/A"
+                mape_std = f"±{m['std_mape']:.2f}%" if m["std_mape"] is not None else "N/A"
+                print(f"  {name:<20}{rmse_s:>{col_w}}{rmse_std:>{col_w}}"
+                      f"{mape_s:>{col_w}}{mape_std:>{col_w}}")
+
+            # Save CV results to JSON
+            cv_results_file = output_path / "cv_results.json"
+            with open(cv_results_file, "w", encoding="utf-8") as f:
+                json.dump(cv_results, f, indent=2, ensure_ascii=False)
+            print(f"\n  CV results saved to: {cv_results_file}")
+
+        # -------------------------------------------------------------- #
+        # Step 13 — Generate HTML report                                   #
         # -------------------------------------------------------------- #
         print("\n  Generating HTML report...")
         from report import HTMLReportGenerator
 
         report_gen = HTMLReportGenerator()
-        report_gen.generate_from_file(str(results_file), str(output_path / "report.html"))
+        cv_results_path = output_path / "cv_results.json"
+        report_gen.generate_from_file(
+            str(results_file),
+            str(output_path / "report.html"),
+            cv_results_path=str(cv_results_path) if cv_results_path.exists() else None,
+        )
         print("  Open reports/report.html in your browser to view the full report.")
 
         print(f"\n{SEPARATOR}")

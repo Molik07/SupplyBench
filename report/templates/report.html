@@ -193,11 +193,80 @@
             margin-right: 6px;
         }
 
+        /* ── Info Box ──────────────────────────────────────────────── */
+        .info-box {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-left: 2px solid #3a3530;
+            padding: 14px 20px;
+            margin-bottom: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            color: #8a8680;
+        }
+
         /* ── Chart ─────────────────────────────────────────────────── */
         .chart-wrap {
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
             padding: 20px;
+        }
+
+        /* ── CV Description ────────────────────────────────────────── */
+        .cv-description {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #8a8680;
+            margin-bottom: 24px;
+        }
+
+        /* ── Consistency Badge ─────────────────────────────────────── */
+        .consistency-high {
+            color: #7a9e7a;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .consistency-moderate {
+            color: #8a8680;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .consistency-variable {
+            color: #5a5650;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Insight Box ───────────────────────────────────────────── */
+        .insight-box {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-left: 2px solid #c4a882;
+            padding: 24px;
+        }
+
+        .insight-box .insight-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #8a8680;
+            margin-bottom: 14px;
+        }
+
+        .insight-box .insight-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #8a8680;
         }
 
         /* ── Ranking ───────────────────────────────────────────────── */
@@ -342,6 +411,11 @@
                 </table>
             </div>
 
+            <!-- ═══ Benchmark Suite Notice ═══ -->
+            <div class="info-box">
+                BENCHMARK SUITE — {{ ranked_models | length }} MODELS: {% for model in ranked_models %}{{ model.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+
             <!-- ═══ Chart ═══ -->
             <div class="section">
                 <div class="section-label">Performance Chart</div>
@@ -349,6 +423,58 @@
                     {{ plotly_chart_html | safe }}
                 </div>
             </div>
+
+            {% if has_cv %}
+            <!-- ═══ Rolling Origin Cross Validation ═══ -->
+            <div class="section">
+                <div class="section-label">Rolling Origin Cross Validation — {{ cv_n_folds }} Folds × {{ cv_test_size }} Days</div>
+                <p class="cv-description">
+                    Rolling origin cross validation tests each model across {{ cv_n_folds }} different time windows rather than a single train-test split.
+                    Mean RMSE shows average accuracy. Std RMSE shows consistency — a lower standard deviation means the model performs reliably across different time periods.
+                </p>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th class="num">Mean RMSE</th>
+                            <th class="num">Std RMSE</th>
+                            <th class="num">Mean MAPE (%)</th>
+                            <th class="num">Std MAPE (%)</th>
+                            <th class="num">Consistency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model in cv_ranked_models %}
+                        <tr>
+                            <td{% if loop.index == 1 %} class="winner-cell"{% endif %}>{% if loop.index == 1 %}<span class="winner-dot">—</span>{% endif %}{{ model.name }}</td>
+                            <td class="num">{% if model.mean_rmse is not none %}{{ "%.4f"|format(model.mean_rmse) }}{% else %}N/A{% endif %}</td>
+                            <td class="num">{% if model.std_rmse is not none %}±{{ "%.4f"|format(model.std_rmse) }}{% else %}N/A{% endif %}</td>
+                            <td class="num">{% if model.mean_mape is not none %}{{ "%.2f"|format(model.mean_mape) }}{% else %}N/A{% endif %}</td>
+                            <td class="num">{% if model.std_mape is not none %}±{{ "%.2f"|format(model.std_mape) }}{% else %}N/A{% endif %}</td>
+                            <td class="num"><span class="consistency-{{ model.consistency_rating | lower }}">{{ model.consistency_rating }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ═══ CV Chart ═══ -->
+            <div class="section">
+                <div class="section-label">Cross Validation Performance Chart</div>
+                <div class="chart-wrap">
+                    {{ cv_plotly_chart_html | safe }}
+                </div>
+            </div>
+
+            <!-- ═══ Key Insight ═══ -->
+            <div class="section">
+                <div class="section-label">Key Insight</div>
+                <div class="insight-box">
+                    <div class="insight-label">Auto-Generated Finding — Cross Validation Analysis</div>
+                    <div class="insight-content">{{ cv_insight_text }}</div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- ═══ Ranking ═══ -->
             <div class="section">
